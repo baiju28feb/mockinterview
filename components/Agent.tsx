@@ -96,7 +96,9 @@ const Agent = ({ userName, userId, interviewId, feedbackId, type, questions }: A
         },
       } as Parameters<typeof vapi.start>[0]);
     } else {
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!);
+      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+        metadata: { userId },
+      } as Parameters<typeof vapi.start>[1]);
     }
   };
 
