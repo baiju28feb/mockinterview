@@ -4,6 +4,10 @@ import Groq from "groq-sdk";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const keyStatus = process.env.GROQ_API_KEY
+    ? `✅ set (length: ${process.env.GROQ_API_KEY.length})`
+    : "❌ NOT SET";
+
   try {
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -19,8 +23,8 @@ export async function GET() {
     });
 
     const text = response.choices[0]?.message?.content?.trim();
-    return NextResponse.json({ success: true, response: text });
+    return NextResponse.json({ success: true, GROQ_API_KEY: keyStatus, response: text });
   } catch (error) {
-    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+    return NextResponse.json({ success: false, GROQ_API_KEY: keyStatus, error: String(error) }, { status: 500 });
   }
 }
