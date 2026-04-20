@@ -1,9 +1,11 @@
 "use server";
 
 import { getDb } from "@/lib/firebase/admin";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
 export async function createFeedback({
   interviewId,
@@ -64,9 +66,12 @@ export async function getFeedbackByInterviewId({
 async function generateFeedback(
   transcript: string
 ): Promise<Omit<Feedback, "id" | "interviewId" | "createdAt">> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-  const prompt = `Analyze this job interview transcript and provide detailed, constructive feedback.
+  const response = await getGroq().chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "user",
+        content: `Analyze this job interview transcript and provide detailed, constructive feedback.
 
 Transcript:
 ${transcript}
@@ -84,11 +89,13 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no extra
   "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
   "areasForImprovement": ["<area 1>", "<area 2>", "<area 3>"],
   "finalAssessment": "<2-3 sentence overall assessment>"
-}`;
+}`,
+      },
+    ],
+    temperature: 0.5,
+  });
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
-
+  const text = response.choices[0]?.message?.content?.trim() ?? "";
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Failed to parse feedback from AI response.");
 

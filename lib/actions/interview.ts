@@ -1,9 +1,11 @@
 "use server";
 
 import { getDb } from "@/lib/firebase/admin";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
 export async function createInterview(params: InterviewFormProps & { userId: string }) {
   const { userId, role, level, type, techstack, amount } = params;
@@ -81,18 +83,23 @@ async function generateQuestions({
   techstack,
   amount,
 }: Omit<InterviewFormProps, "interviewId">) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-  const prompt = `Generate ${amount} interview questions for a ${level} ${role} position.
+  const response = await getGroq().chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "user",
+        content: `Generate ${amount} interview questions for a ${level} ${role} position.
 Interview type: ${type}
 Tech stack: ${techstack.join(", ")}
 
 Return ONLY a valid JSON array of question strings, with no other text or markdown.
-Example format: ["Question 1?", "Question 2?", "Question 3?"]`;
+Example format: ["Question 1?", "Question 2?", "Question 3?"]`,
+      },
+    ],
+    temperature: 0.7,
+  });
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
-
+  const text = response.choices[0]?.message?.content?.trim() ?? "";
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error("Failed to parse questions from AI response.");
 
