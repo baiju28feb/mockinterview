@@ -79,27 +79,21 @@ const Agent = ({ userName, userId, interviewId, feedbackId, type, questions }: A
   const startCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
     const vapi = vapiRef.current;
-    if (!vapi) return;
+    if (!vapi || !questions?.length) return;
 
-    if (type === "interview" && questions?.length) {
-      const questionsText = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
-      const systemMessage = interviewer.model.messages[0].content.replace(
-        "{{questions}}",
-        questionsText
-      );
+    const questionsText = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
+    const systemMessage = interviewer.model.messages[0].content.replace(
+      "{{questions}}",
+      questionsText
+    );
 
-      await vapi.start({
-        ...interviewer,
-        model: {
-          ...interviewer.model,
-          messages: [{ role: "system", content: systemMessage }],
-        },
-      } as Parameters<typeof vapi.start>[0]);
-    } else {
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-        metadata: { userId },
-      } as Parameters<typeof vapi.start>[1]);
-    }
+    await vapi.start({
+      ...interviewer,
+      model: {
+        ...interviewer.model,
+        messages: [{ role: "system", content: systemMessage }],
+      },
+    } as Parameters<typeof vapi.start>[0]);
   };
 
   const stopCall = () => vapiRef.current?.stop();
