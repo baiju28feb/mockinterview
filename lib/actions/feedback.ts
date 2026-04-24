@@ -85,7 +85,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no extra
     {"name": "Problem Solving", "score": <0-100>, "comment": "<brief comment>"},
     {"name": "Cultural Fit", "score": <0-100>, "comment": "<brief comment>"},
     {"name": "Confidence and Clarity", "score": <0-100>, "comment": "<brief comment>"},
-    {"name": "Depth Under Pressure", "score": <0-100>, "comment": "<brief comment>"}
+    {"name": "Depth Under Pressure", "score": <0-100>, "comment": "<how well the candidate elaborated and stayed composed when challenged or asked follow-up questions>"}
   ],
   "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
   "areasForImprovement": ["<area 1>", "<area 2>", "<area 3>"],
